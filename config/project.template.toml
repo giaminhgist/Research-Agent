@@ -1,0 +1,16 @@
+# Research-Agent project settings (created by `ra init`). Values here override ~/.research-agent/config.toml.
+
+[project]
+name = "{name}"
+irb = "{irb}"
+
+[data]
+protected_paths = {protected}
+sensitive_paths = {sensitive}
+
+[budget]
+max_usd_per_session = {budget_session}
+max_usd_per_project = {budget_project}
+
+[autonomy]
+level = "semi"
