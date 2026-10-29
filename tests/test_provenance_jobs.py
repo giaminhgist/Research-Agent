@@ -17,7 +17,7 @@ def test_capture_manifest_fields(project):
     (project / "data/raw/a.csv").write_text("1,2\n")
     cfgf = project / "cfg.yaml"
     cfgf.write_text("lr: 0.1\n")
-    rid = provenance.capture(project, ["python", "train.py"], seed=7, config_paths=[cfgf], data_paths=[project / "data/raw"])
+    rid = provenance.capture(project, [sys.executable, "train.py"], seed=7, config_paths=[cfgf], data_paths=[project / "data/raw"])
     m = json.loads((project / ".research-agent/runs" / rid / "manifest.json").read_text())
     assert rid.startswith("R") and m["run_id"] == rid and m["seed"] == 7
     assert len(m["git"]["sha"]) == 40 and m["git"]["dirty"] is True

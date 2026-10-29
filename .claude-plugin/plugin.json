@@ -1,6 +1,6 @@
 {
   "name": "research-agent",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Research-Agent: a multi-agent research system (orchestrator + research, methodology, coding, experiment, writing, reviewer) with evidence-first quality gates, reproducible runs, a searchable knowledge base, human-in-the-loop guardrails and a three-tier budget. Uses the superpowers, ARIS, Supervisor-Skills and humanizer skills, which are installed separately from their own repos.",
   "author": { "name": "Research-Agent maintainers" },
   "license": "MIT",

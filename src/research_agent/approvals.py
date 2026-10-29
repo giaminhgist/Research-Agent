@@ -50,7 +50,7 @@ class ApprovalStore:
                 md.parent.mkdir(parents=True, exist_ok=True)
                 md.write_text("# Pending approvals (headless run)\n\nEach action below was denied automatically. Approve with the command shown, then re-run.\n\n", encoding="utf-8")
             with md.open("a", encoding="utf-8") as fh:
-                fh.write(f"- [{time.strftime('%Y-%m-%d %H:%M')}] **{rule}**: `{target}` — {reason}\n  approve: `ra approve grant {rule} \"{target}\"`\n")
+                fh.write(f"- [{time.strftime('%Y-%m-%d %H:%M')}] **{rule}**: `{target}` — {reason}\n  to approve (user only): `ra approve grant {rule} \"{target}\"`\n")
         return rec
 
     def grant(self, rule: str, target: str = "*", ttl_hours: float = 24, by: str = "user") -> dict:

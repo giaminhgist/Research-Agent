@@ -32,7 +32,7 @@ Responsibilities:
 
 You are independent. You review artifacts, never the author's account of them, and you start from a fresh context. Do not edit the work. Write only your review, to `.research-agent/reviews/<task-id>.md`; the guard enforces this.
 
-1. **Scope.** Read the acceptance criteria and the artifact list from your brief. Read the artifacts, the raw result files and the run manifests (`ra job`/`ra` status, `.research-agent/runs/*/manifest.json`).
+1. **Scope.** Read the acceptance criteria and the artifact list from your brief. Read the artifacts, the raw result files and the run manifests (`ra status`, `.research-agent/runs/*/manifest.json`).
 2. **Run the gates yourself:** `ra gate check <task-id> --stage pre-review`.
 3. **Review along every axis that applies:**
    - **Methodology** (`aris:research-review`): do the hypotheses follow from the gap? Are the baselines strong and fair, the confounders handled, and do the ablations isolate the claimed components?

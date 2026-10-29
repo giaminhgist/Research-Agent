@@ -46,7 +46,8 @@ def _pre_tool(payload: dict, cwd: Path, project: Path | None) -> dict | None:
         cost = session_cost_from_transcript(Path(payload["transcript_path"]), cfg.get("pricing", {})) if payload.get("transcript_path") else None
         action, msg = Budget(project, cfg).check_dispatch(sid, cost)
         if action == "deny":
-            return _pre("deny", f"[research-agent:budget] {msg}. Raise the cap in .research-agent/project.toml or stop here.")
+            return _pre("deny", f"[research-agent:budget] {msg}. Stop dispatching and report to the user: only the user may raise "
+                                "the cap (.research-agent/project.toml). Do not edit budget or config files yourself.")
         sf = _session_file(project, sid)
         try:
             count = json.loads(sf.read_text(encoding="utf-8")).get("dispatches", 0)
@@ -79,13 +80,20 @@ def _post_tool(payload: dict, project: Path) -> dict | None:
     return None
 
 
+def to_bash_path(p) -> str:
+    """Path as Git Bash / MSYS expects it: C:\\Users\\x -> /c/Users/x (POSIX paths unchanged)."""
+    s = str(p).replace("\\", "/")
+    m = re.match(r"^([A-Za-z]):/(.*)$", s)
+    return f"/{m.group(1).lower()}/{m.group(2)}" if m else s
+
+
 def _export_path(env: Mapping) -> None:
     env_file = env.get("CLAUDE_ENV_FILE")
     if not env_file:
         return
     bins = [paths.ra_home() / "venv" / ("Scripts" if sys.platform == "win32" else "bin"), paths.plugin_root() / "bin"]
     with open(env_file, "a", encoding="utf-8") as fh:
-        fh.write("export PATH=\"" + ":".join(str(b).replace("\\", "/") for b in bins) + ":$PATH\"\n")
+        fh.write("export PATH=\"" + ":".join(to_bash_path(b) for b in bins) + ":$PATH\"\n")
 
 
 def _session_start(project: Path) -> dict:

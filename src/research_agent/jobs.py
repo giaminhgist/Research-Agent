@@ -55,6 +55,6 @@ def run_job(project: Path, cmd: list[str], gpu_hours: float = 0.0, seed: int | N
         status = "failed"
     provenance.finalize(project, rid, code, metrics, status=status)
     if gpu_hours > 0:
-        budget.record_gpu_job(rid, min(gpu_hours, (time.time() - start) / 3600))
+        budget.record_gpu_job(rid, (time.time() - start) / 3600)
     trace.append(project, "job.run", run_id=rid, status=status, exit_code=code, gpu_hours=gpu_hours)
     return {"status": status, "run_id": rid, "exit_code": code}

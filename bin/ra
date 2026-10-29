@@ -3,11 +3,15 @@
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PYTHONPATH="$HERE/src${PYTHONPATH:+:$PYTHONPATH}"
 export CLAUDE_PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HERE}"
-for py in "$RA_PYTHON" "$HOME/.research-agent/venv/bin/python" "$HOME/.research-agent/venv/Scripts/python.exe" python3 "py -3" python; do
+ok() { "$@" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' >/dev/null 2>&1; }
+for py in "$RA_PYTHON" "$HOME/.research-agent/venv/bin/python" "$HOME/.research-agent/venv/Scripts/python.exe" python3 python; do
   [ -z "$py" ] && continue
-  if $py -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' >/dev/null 2>&1; then
-    exec $py -m research_agent "$@"
+  if ok "$py"; then
+    exec "$py" -m research_agent "$@"
   fi
 done
+if ok py -3; then
+  exec py -3 -m research_agent "$@"
+fi
 echo "Research-Agent needs Python >= 3.11" >&2
 exit 1

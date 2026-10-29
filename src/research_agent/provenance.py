@@ -6,7 +6,9 @@ import hashlib
 import json
 import os
 import platform
+import re
 import secrets
+import shutil
 import subprocess
 import sys
 import time
@@ -64,6 +66,14 @@ def _git(project: Path) -> dict | None:
         return None
 
 
+def job_python(cmd: list[str]) -> str:
+    """The interpreter the job will run under: cmd[0] if it is a Python, else the first python on PATH."""
+    name = os.path.basename(cmd[0]).lower() if cmd else ""
+    if re.fullmatch(r"python[0-9.]*(\.exe)?|py(\.exe)?", name):
+        return shutil.which(cmd[0]) or cmd[0]
+    return shutil.which("python3") or shutil.which("python") or sys.executable
+
+
 def runs_dir(project: Path) -> Path:
     return paths.state_dir(project) / "runs"
 
@@ -73,10 +83,16 @@ def capture(project: Path, cmd: list[str], seed: int | None, config_paths: list[
     rid = f"R{time.strftime('%Y%m%d-%H%M%S')}-{secrets.token_hex(2)}"
     d = runs_dir(project) / rid
     d.mkdir(parents=True)
+    py = job_python(cmd)
     try:
-        freeze = subprocess.run([sys.executable, "-m", "pip", "freeze"], capture_output=True, text=True, timeout=120).stdout
+        r = subprocess.run([py, "-m", "pip", "freeze"], capture_output=True, text=True, timeout=120)
+        freeze = r.stdout if r.returncode == 0 else f"# pip freeze failed with {py}: {r.stderr.strip()[:500]}\n"
     except (OSError, subprocess.SubprocessError) as exc:
-        freeze = f"# pip freeze failed: {exc}\n"
+        freeze = f"# pip freeze failed with {py}: {exc}\n"
+    try:
+        py_version = subprocess.run([py, "-c", "import sys; print(sys.version.split()[0])"], capture_output=True, text=True, timeout=60).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        py_version = ""
     (d / "pip_freeze.txt").write_text(freeze, encoding="utf-8")
     manifest = {
         "run_id": rid,
@@ -86,10 +102,10 @@ def capture(project: Path, cmd: list[str], seed: int | None, config_paths: list[
         "data": {_rel(p, project): hash_path(p) for p in data_paths},
         "config": {_rel(p, project): hash_path(p)["sha256"] for p in config_paths},
         "seed": seed,
-        "env": {"python": sys.version.split()[0], "platform": platform.platform(), "executable": sys.executable,
+        "env": {"python": py_version, "platform": platform.platform(), "executable": py, "ra_executable": sys.executable,
                 "pip_freeze_sha256": hashlib.sha256(freeze.encode()).hexdigest(),
                 "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES")},
-        "device": device.detect(),
+        "device": device.detect(python=py),
         "started_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
     }
     (d / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")

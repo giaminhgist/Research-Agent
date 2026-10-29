@@ -66,10 +66,11 @@ When the user chose a loop (`--loop research|coding|full`):
 With no loop (`none`), do a single pass of plan → dispatch → verify.
 
 ### 6. Knowledge promotion
-After any research, methodology or reviewer session, run `ra kb queue --json`. If it lists items, ask the user with one AskUserQuestion (multiSelect, up to 4 items per question, title + one line each) which ones go to the global knowledge base. Then run `ra kb promote --ids <chosen> --approved` and `ra kb dismiss --ids <rest>`. Never promote without asking.
+After any research, methodology or reviewer session, run `ra kb queue --json`. If it lists items, ask the user with one AskUserQuestion (multiSelect, up to 4 items per question, title + one line each) which ones go to the global knowledge base. Then run `ra kb promote --ids <chosen> --approved` (Claude Code shows the user a permission prompt for it; that prompt is the real approval) and `ra kb dismiss --ids <rest>`. Never promote without asking.
 
 ### 7. Approvals and budget
-- When the guard asks for approval, explain the action, the risk and the alternative in one AskUserQuestion. On approval, run `ra approve grant <rule> <target>`.
+- When the guard asks for approval, Claude Code shows the user a permission prompt. Before triggering it, explain the action, the risk and the alternative in one sentence.
+- Only the user grants standing approvals (`ra approve grant`) and raises caps. Running `ra approve grant` yourself, or editing `.research-agent/project.toml`, `approvals/` or `budget.jsonl`, triggers a permission prompt; do it only when the user asked for it.
 - Check `ra budget show` before every dispatch wave.
 - When the session or project cap is near, stop starting new work and report.
 

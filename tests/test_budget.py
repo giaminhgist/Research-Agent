@@ -72,7 +72,7 @@ def test_unknown_cost_warns_but_project_cap_enforced(project):
 
 def test_gpu_job_cap_and_timeout(project):
     b = budget(project)  # 5 USD cap, 1.5 USD/h
-    assert b.check_gpu_job(2) == (True, 3.0, 7200)
+    assert b.check_gpu_job(2) == (True, 3.0, 12000)
     ok, est, _ = b.check_gpu_job(4)
     assert not ok and est == 6.0
     assert b.check_gpu_job(0) == (True, 0.0, 0)

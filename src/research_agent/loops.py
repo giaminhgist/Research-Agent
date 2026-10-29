@@ -72,7 +72,8 @@ class LoopController:
             return True, "reviewer_pass"
         if st["consecutive_fails"] >= int(config.get(self.cfg, "budget.max_consecutive_fails", 2)):
             return True, "consecutive_fails"
-        if budget is not None and budget.check_dispatch("loop", session_usd)[0] == "deny":
+        budget = budget if budget is not None else Budget(self.project, self.cfg)
+        if budget.check_dispatch("loop", session_usd)[0] == "deny":
             return True, "budget"
         if st["iteration"] > int(config.get(self.cfg, "budget.max_loop_iterations", 3)):
             return True, "max_iterations"

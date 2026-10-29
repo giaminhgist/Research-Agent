@@ -128,7 +128,7 @@ class Budget:
         est = round(gpu_hours * rate, 6)
         if gpu_hours <= 0:
             return True, 0.0, 0
-        timeout = int(min(gpu_hours, cap / rate if rate else gpu_hours) * 3600)
+        timeout = int((cap / rate if rate else gpu_hours) * 3600)  # the job may run until it has spent the per-job cap
         return est <= cap, est, timeout
 
     def record_gpu_job(self, job_id: str, gpu_hours: float) -> float:

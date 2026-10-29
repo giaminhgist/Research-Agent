@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "research-agent"
-version = "0.1.0"
+version = "0.1.1"
 description = "Multi-agent research system for Claude Code: orchestrator + 6 specialists, guardrails, provenance, knowledge base."
 requires-python = ">=3.11"
 license = { text = "MIT" }
