@@ -1,0 +1,11 @@
+# Python libraries the upstream skills' helper scripts use (installed into ~/.research-agent/venv).
+numpy
+scipy
+pandas
+matplotlib
+seaborn
+Pillow>=10
+python-pptx
+pypdf
+requests
+pyyaml

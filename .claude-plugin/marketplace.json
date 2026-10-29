@@ -1,0 +1,11 @@
+{
+  "name": "research-agent",
+  "owner": { "name": "Research-Agent maintainers" },
+  "plugins": [
+    {
+      "name": "research-agent",
+      "source": "./",
+      "description": "Multi-agent research system for Claude Code: plan, find evidence, implement, run experiments, review, and return reproducible artifacts."
+    }
+  ]
+}
