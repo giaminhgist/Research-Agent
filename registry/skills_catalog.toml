@@ -1,0 +1,162 @@
+# Curated metadata for skills that Research-Agent maps to agents.
+# Keys are canonical ids "<repo>:<name>". Descriptions are read from each installed SKILL.md;
+# builtins (shipped inside Claude Code, no SKILL.md on disk) carry their description here.
+#
+# task_types vocabulary: literature ideation design implement debug run analyze write figures review plan knowledge
+# invoke_as: optional override of the name Claude Code accepts (default "<repo>:<name>", bare name for builtin and
+# for supervisor-skills, which are installed user-level into ~/.claude/skills).
+
+[skills]
+# --- superpowers -----------------------------------------------------------------------------------------------
+"superpowers:brainstorming" = { tags = ["idea", "design", "requirements", "brainstorm", "plan"], task_types = ["plan", "ideation"] }
+"superpowers:writing-plans" = { tags = ["plan", "spec", "tasks"], task_types = ["plan"] }
+"superpowers:dispatching-parallel-agents" = { tags = ["parallel", "agents", "dispatch"], task_types = ["plan"] }
+"superpowers:subagent-driven-development" = { tags = ["subagent", "plan", "execute"], task_types = ["plan", "implement"] }
+"superpowers:executing-plans" = { tags = ["plan", "execute"], task_types = ["plan", "implement"] }
+"superpowers:verification-before-completion" = { tags = ["verify", "check", "done"], task_types = ["implement", "run", "review"] }
+"superpowers:test-driven-development" = { tags = ["test", "tests", "tdd", "unit", "pytest"], task_types = ["implement"] }
+"superpowers:systematic-debugging" = { tags = ["bug", "debug", "error", "failure", "crash", "fix"], task_types = ["debug"] }
+"superpowers:using-git-worktrees" = { tags = ["git", "worktree", "branch", "isolation"], task_types = ["implement"] }
+"superpowers:requesting-code-review" = { tags = ["review", "code", "pr"], task_types = ["implement", "review"] }
+"superpowers:receiving-code-review" = { tags = ["review", "feedback", "code"], task_types = ["implement"] }
+"superpowers:finishing-a-development-branch" = { tags = ["merge", "branch", "pr", "finish"], task_types = ["implement"] }
+
+# --- ARIS: literature & knowledge -------------------------------------------------------------------------------
+"aris:research-lit" = { tags = ["literature", "papers", "paper", "related", "work", "survey", "review"], task_types = ["literature"] }
+"aris:arxiv" = { tags = ["arxiv", "papers", "preprint", "download", "pdf"], task_types = ["literature"] }
+"aris:semantic-scholar" = { tags = ["semantic", "scholar", "citations", "papers", "venue"], task_types = ["literature"] }
+"aris:openalex" = { tags = ["openalex", "citation", "graph", "funding", "affiliations"], task_types = ["literature"] }
+"aris:alphaxiv" = { tags = ["explain", "summarize", "paper", "arxiv"], task_types = ["literature"] }
+"aris:deepxiv" = { tags = ["deepxiv", "section", "progressive", "reading", "trending"], task_types = ["literature"] }
+"aris:exa-search" = { tags = ["exa", "web", "search", "blogs", "similar"], task_types = ["literature"], requires_env = ["EXA_API_KEY"] }
+"aris:gemini-search" = { tags = ["gemini", "search", "discovery"], task_types = ["literature"], requires_env = ["GEMINI_API_KEY"] }
+"aris:keenable-search" = { tags = ["keenable", "web", "search", "fetch", "page"], task_types = ["literature"] }
+"aris:firecrawl-search" = { tags = ["firecrawl", "scrape", "web", "page"], task_types = ["literature"], requires_env = ["FIRECRAWL_API_KEY"] }
+"aris:comm-lit-review" = { tags = ["wireless", "networking", "communications", "satellite"], task_types = ["literature"] }
+"aris:research-wiki" = { tags = ["wiki", "memory", "knowledge", "notes", "library"], task_types = ["knowledge", "literature"] }
+"aris:wiki-enrich" = { tags = ["wiki", "enrich", "knowledge", "graph"], task_types = ["knowledge"] }
+"aris:citation-audit" = { tags = ["citation", "citations", "references", "bib", "bibliography", "verify"], task_types = ["review", "literature", "write"] }
+"aris:citation-crosscheck" = { tags = ["citation", "bib", "crosscheck", "fields", "doi"], task_types = ["review"] }
+"supervisor-skills:deep-research" = { tags = ["survey", "report", "deep", "literature", "landscape", "sota"], task_types = ["literature"] }
+
+# --- ARIS: ideas, design, theory --------------------------------------------------------------------------------
+"aris:render-html" = { tags = ["html", "render", "report", "dashboard"], task_types = ["plan", "write"] }
+"aris:research-pipeline" = { tags = ["pipeline", "end-to-end", "autonomous", "loop"], task_types = ["plan"] }
+"aris:idea-discovery" = { tags = ["idea", "ideas", "direction", "discovery", "pilot"], task_types = ["ideation"] }
+"aris:idea-creator" = { tags = ["idea", "ideas", "brainstorm", "generate", "rank"], task_types = ["ideation"] }
+"aris:idea-discovery-robot" = { tags = ["robot", "robotics", "embodied", "manipulation"], task_types = ["ideation"] }
+"aris:novelty-check" = { tags = ["novelty", "novel", "prior", "overlap"], task_types = ["ideation", "review"] }
+"aris:research-refine" = { tags = ["refine", "method", "proposal", "sharpen"], task_types = ["design", "ideation"] }
+"aris:research-refine-pipeline" = { tags = ["refine", "experiment", "plan", "pipeline"], task_types = ["design"] }
+"aris:experiment-plan" = { tags = ["experiment", "protocol", "baselines", "metrics", "datasets", "splits", "plan"], task_types = ["design"] }
+"aris:ablation-planner" = { tags = ["ablation", "ablations", "component"], task_types = ["design", "run"] }
+"aris:formula-derivation" = { tags = ["formula", "derivation", "derive", "theory", "equation"], task_types = ["design"] }
+"aris:proof-writer" = { tags = ["proof", "theorem", "lemma"], task_types = ["design"] }
+"aris:proof-checker" = { tags = ["proof", "check", "theorem", "rigor"], task_types = ["review", "design"] }
+"aris:lean-formalize" = { tags = ["lean", "formal", "formalize", "proof"], task_types = ["design"], requires_tools = ["lake"] }
+"supervisor-skills:idea-evaluator" = { tags = ["idea", "evaluate", "score", "feasibility"], task_types = ["ideation", "review"] }
+"supervisor-skills:vibe-research-workflow" = { tags = ["workflow", "ai-assisted", "research", "rules"], task_types = ["plan"] }
+
+# --- ARIS: implementation & experiments -------------------------------------------------------------------------
+"aris:research-implement-feature" = { tags = ["implement", "feature", "method", "baseline", "code"], task_types = ["implement"] }
+"aris:experiment-bridge" = { tags = ["implement", "experiment", "deploy", "plan"], task_types = ["implement", "run"] }
+"aris:web-debug-search" = { tags = ["error", "traceback", "stackoverflow", "issue", "debug"], task_types = ["debug"] }
+"aris:run-experiment" = { tags = ["run", "train", "training", "gpu", "experiment", "launch"], task_types = ["run"] }
+"aris:experiment-queue" = { tags = ["queue", "grid", "sweep", "seeds", "batch"], task_types = ["run"] }
+"aris:monitor-experiment" = { tags = ["monitor", "progress", "status", "logs"], task_types = ["run"] }
+"aris:training-check" = { tags = ["training", "loss", "curves", "nan", "wandb"], task_types = ["run", "analyze"] }
+"aris:analyze-results" = { tags = ["analyze", "results", "statistics", "compare", "table", "significance"], task_types = ["analyze"] }
+"aris:result-to-claim" = { tags = ["claim", "claims", "supported", "results"], task_types = ["analyze", "review"] }
+"aris:experiment-audit" = { tags = ["audit", "integrity", "leakage", "ground", "truth"], task_types = ["review", "analyze"] }
+"aris:system-profile" = { tags = ["profile", "profiling", "performance", "memory", "speed"], task_types = ["implement", "run"] }
+"aris:vast-gpu" = { tags = ["vast", "cloud", "gpu", "rent"], task_types = ["run"], requires_tools = ["vastai"] }
+"aris:serverless-modal" = { tags = ["modal", "serverless", "cloud", "gpu"], task_types = ["run"], requires_tools = ["modal"] }
+"aris:qzcli" = { tags = ["qizhi", "cluster", "qzcli"], task_types = ["run"], requires_tools = ["qzcli"] }
+"aris:dse-loop" = { tags = ["sweep", "tune", "hyperparameter", "search", "optimize"], task_types = ["run"] }
+
+# --- ARIS + Supervisor: writing ---------------------------------------------------------------------------------
+"aris:paper-writing" = { tags = ["paper", "manuscript", "pipeline", "pdf"], task_types = ["write"], requires_tools = ["latexmk"] }
+"aris:paper-plan" = { tags = ["outline", "plan", "paper", "structure"], task_types = ["write"] }
+"aris:paper-write" = { tags = ["draft", "latex", "section", "methods", "results", "discussion"], task_types = ["write"] }
+"aris:paper-figure" = { tags = ["figure", "figures", "plot", "plots", "table", "tables"], task_types = ["figures", "write"] }
+"aris:paper-compile" = { tags = ["compile", "latex", "pdf", "build"], task_types = ["write"], requires_tools = ["latexmk"] }
+"aris:grant-proposal" = { tags = ["grant", "proposal", "funding", "nsf", "erc"], task_types = ["write"] }
+"aris:rebuttal" = { tags = ["rebuttal", "reviewers", "response"], task_types = ["write"] }
+"aris:resubmit-pipeline" = { tags = ["resubmit", "resubmission", "revise"], task_types = ["write"] }
+"aris:figure-spec" = { tags = ["diagram", "architecture", "svg", "pipeline", "workflow"], task_types = ["figures"] }
+"aris:mermaid-diagram" = { tags = ["mermaid", "flowchart", "diagram", "sequence"], task_types = ["figures"] }
+"aris:paper-illustration" = { tags = ["illustration", "diagram", "image"], task_types = ["figures"], requires_env = ["GEMINI_API_KEY"] }
+"aris:paper-slides" = { tags = ["slides", "presentation", "beamer", "pptx", "talk"], task_types = ["write"], requires_tools = ["latexmk"] }
+"aris:paper-talk" = { tags = ["talk", "slides", "presentation", "script"], task_types = ["write"] }
+"aris:paper-poster-html" = { tags = ["poster", "conference"], task_types = ["write"] }
+"aris:overleaf-sync" = { tags = ["overleaf", "sync"], task_types = ["write"] }
+"aris:auto-paper-improvement-loop" = { tags = ["improve", "polish", "loop", "paper"], task_types = ["write"] }
+"aris:writing-systems-papers" = { tags = ["systems", "osdi", "sosp", "nsdi"], task_types = ["write"] }
+"supervisor-skills:paper-writer" = { tags = ["paper", "write", "draft", "evidence"], task_types = ["write"] }
+"supervisor-skills:intro-drafter" = { tags = ["introduction", "intro", "motivation"], task_types = ["write"] }
+"supervisor-skills:paper-polish" = { tags = ["polish", "language", "grammar", "edit"], task_types = ["write"] }
+"supervisor-skills:tech-paper-template" = { tags = ["template", "technical", "skeleton"], task_types = ["write"] }
+"supervisor-skills:benchmark-paper-template" = { tags = ["benchmark", "dataset", "template"], task_types = ["write"] }
+"supervisor-skills:rebuttal-guidance" = { tags = ["rebuttal", "reviewers", "response"], task_types = ["write", "review"] }
+"supervisor-skills:figure-designer" = { tags = ["figure", "teaser", "overview", "design"], task_types = ["figures"] }
+"supervisor-skills:drawio-reconstruction" = { tags = ["drawio", "editable", "diagram", "reconstruct"], task_types = ["figures"] }
+"humanizer:humanizer" = { tags = ["humanize", "humanizer", "natural", "tone", "voice", "prose"], task_types = ["write"] }
+
+# --- ARIS + Supervisor: review ----------------------------------------------------------------------------------
+"aris:research-review" = { tags = ["review", "critique", "weakness", "assessment"], task_types = ["review"] }
+"aris:auto-review-loop" = { tags = ["review", "loop", "iterate", "rounds"], task_types = ["review"] }
+"aris:paper-claim-audit" = { tags = ["claims", "numbers", "verify", "audit"], task_types = ["review"] }
+"aris:kill-argument" = { tags = ["adversarial", "hostile", "rejection", "reviewer-2"], task_types = ["review"] }
+"aris:integrity-forensics" = { tags = ["integrity", "forensics", "misconduct"], task_types = ["review"] }
+"supervisor-skills:pre-submission-reviewer" = { tags = ["submission", "review", "venue", "score"], task_types = ["review"] }
+
+# --- Claude Code builtins ---------------------------------------------------------------------------------------
+"builtin:code-review" = { source = "builtin", description = "Review a diff, PR, branch or path for correctness bugs.", tags = ["review", "code", "bugs", "diff", "pr"], task_types = ["review", "implement"] }
+"builtin:security-review" = { source = "builtin", description = "Security review of pending changes.", tags = ["security", "vulnerability", "secrets"], task_types = ["review", "implement"] }
+"builtin:simplify" = { source = "builtin", description = "Review changed code for reuse, simplification and efficiency, then apply fixes.", tags = ["simplify", "refactor", "cleanup", "refactoring"], task_types = ["implement"] }
+"builtin:dataviz" = { source = "builtin", description = "Design consistent, accessible charts and plots.", tags = ["chart", "plot", "visualization", "figure", "dashboard"], task_types = ["figures", "analyze"] }
+"builtin:claude-api" = { source = "builtin", description = "Claude API / Anthropic SDK reference.", tags = ["claude", "anthropic", "llm", "api"], task_types = ["implement"] }
+"builtin:loop" = { source = "builtin", description = "Run a prompt or command on a recurring interval.", tags = ["recurring", "interval", "poll"], task_types = ["plan"] }
+"builtin:init" = { source = "builtin", description = "Initialize a CLAUDE.md for a codebase.", tags = ["claude.md", "init"], task_types = [] }
+"builtin:run" = { source = "builtin", description = "Launch and drive the project's app to see a change working.", tags = ["run", "app", "launch"], task_types = [] }
+"builtin:update-config" = { source = "builtin", description = "Configure Claude Code settings.json, hooks and permissions.", tags = ["settings", "hooks", "permissions"], task_types = [] }
+"builtin:fewer-permission-prompts" = { source = "builtin", description = "Add an allowlist for common read-only commands.", tags = ["permissions"], task_types = [] }
+"builtin:workflow-authoring" = { source = "builtin", description = "Reference for writing Workflow scripts.", tags = ["workflow"], task_types = [] }
+"builtin:plugin-authoring" = { source = "builtin", description = "Make a Claude Code mod or plugin.", tags = ["plugin"], task_types = [] }
+"builtin:keybindings-help" = { source = "builtin", description = "Customize keyboard shortcuts.", tags = ["keybindings"], task_types = [] }
+
+[unmapped]
+# Installed and discoverable through the Skill tool, but not preloaded or offered by the resolver by default.
+ids = [
+  "aris:auto-review-loop-llm",
+  "aris:auto-review-loop-minimax",
+  "aris:claims-drafting",
+  "aris:embodiment-description",
+  "aris:feishu-notify",
+  "aris:figure-description",
+  "aris:interview-cheatsheet",
+  "aris:invention-structuring",
+  "aris:jurisdiction-format",
+  "aris:meta-apply",
+  "aris:meta-optimize",
+  "aris:paper-illustration-image2",
+  "aris:paper-poster",
+  "aris:patent-novelty-check",
+  "aris:patent-pipeline",
+  "aris:patent-review",
+  "aris:pixel-art",
+  "aris:prior-art-search",
+  "aris:proof-orchestrator",
+  "aris:slides-polish",
+  "aris:specification-writing",
+  "superpowers:diagnosing-superpowers",
+  "superpowers:using-superpowers",
+  "superpowers:writing-skills",
+  "builtin:init",
+  "builtin:run",
+  "builtin:update-config",
+  "builtin:fewer-permission-prompts",
+  "builtin:workflow-authoring",
+  "builtin:plugin-authoring",
+  "builtin:keybindings-help",
+]
