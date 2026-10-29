@@ -44,8 +44,11 @@ def run(skills: bool = False, live: bool = False) -> list[Check]:
         for agent in load_agents().values():
             missing = [s for s in agent.core_skills if not (reg.get(s) and reg.get(s).installed)]
             out.append(Check(f"preload {agent.name}", not missing, f"not installed: {missing}" if missing else f"{len(agent.core_skills)} core skills"))
-            unavailable = [f"{s} ({', '.join(why)})" for s in agent.borrow_skills + agent.core_skills
-                           if (r := reg.available(s)) and not r[0] and "not installed" not in r[1]]
+            unavailable = []
+            for sid in agent.core_skills + agent.borrow_skills:
+                ok, why = reg.available(sid)
+                if not ok and "not installed" not in why:
+                    unavailable.append(f"{sid} ({', '.join(why)})")
             if unavailable:
                 out.append(Check(f"optional {agent.name}", False, "needs keys/tools: " + "; ".join(unavailable), "warn"))
         try:

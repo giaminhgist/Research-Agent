@@ -218,3 +218,18 @@ def test_setup_machine_repoints_stale_tutu_paths(tmp_home, tmp_path, monkeypatch
     assert (tmp_path / "h" / ".aris" / "repo").read_text().strip().endswith("abc")
     assert ["claude", "mcp", "remove", "claude-review", "-s", "user"] in calls
     assert any(c[:4] == ["claude", "mcp", "add", "claude-review"] for c in calls)
+
+
+def test_doctor_skills_mode_reports_optional_requirements(tmp_path, monkeypatch):
+    home = make_claude_home(tmp_path)
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(home))
+    monkeypatch.delenv("EXA_API_KEY", raising=False)
+
+    class R:
+        stdout = "claude-review: python server.py - ✔ Connected\n"
+
+    monkeypatch.setattr(doctor.subprocess, "run", lambda *a, **k: R())
+    checks = {c.name: c for c in doctor.run(skills=True, live=True)}
+    assert checks["skills aris"].level == "warn" and not checks["skills aris"].ok  # fixture has 5, not 87
+    assert "aris:exa-search (env:EXA_API_KEY)" in checks["optional research"].detail
+    assert checks["reviewer MCP"].ok and checks["reviewer MCP connected"].ok
