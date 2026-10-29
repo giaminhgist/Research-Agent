@@ -192,3 +192,29 @@ def test_bin_wrapper_runs(tmp_home):
     import subprocess
     r = subprocess.run(["bash", str(ROOT / "bin" / "ra"), "route", "survey gaze papers", "--json"], capture_output=True, text=True)
     assert r.returncode == 0 and json.loads(r.stdout)["agent"] == "research"
+
+
+def test_setup_machine_repoints_stale_tutu_paths(tmp_home, tmp_path, monkeypatch):
+    home = make_claude_home(tmp_path)
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(home))
+    monkeypatch.setenv("HOME", str(tmp_path / "h"))
+    old = tmp_path / "old-tutu-cache" / "aris"
+    old.mkdir(parents=True)
+    (tmp_path / "h" / ".aris").mkdir(parents=True)
+    (tmp_path / "h" / ".aris" / "repo").write_text(str(old) + "\n")
+    calls = []
+
+    class R:
+        def __init__(self, out=""):
+            self.stdout, self.returncode = out, 0
+
+    def runner(cmd, **kw):
+        calls.append(cmd)
+        if cmd[:3] == ["claude", "mcp", "list"]:
+            return R(f"claude-review: /usr/bin/python3 {old}/mcp-servers/claude-review/server.py - ✔ Connected\n")
+        return R()
+
+    setup.setup_machine("claude", runner=runner)
+    assert (tmp_path / "h" / ".aris" / "repo").read_text().strip().endswith("abc")
+    assert ["claude", "mcp", "remove", "claude-review", "-s", "user"] in calls
+    assert any(c[:4] == ["claude", "mcp", "add", "claude-review"] for c in calls)

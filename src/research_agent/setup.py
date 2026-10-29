@@ -52,7 +52,7 @@ def setup_machine(reviewer: str = "claude", runner=subprocess.run) -> list[str]:
         return actions
     pointer = Path.home() / ".aris" / "repo"
     current = pointer.read_text(encoding="utf-8").strip() if pointer.is_file() else ""
-    if not current or not Path(current).is_dir():
+    if current != str(aris):
         pointer.parent.mkdir(parents=True, exist_ok=True)
         pointer.write_text(str(aris) + "\n", encoding="utf-8")
         actions.append(f"wrote {pointer} -> {aris} (ARIS helper scripts)")
@@ -60,7 +60,12 @@ def setup_machine(reviewer: str = "claude", runner=subprocess.run) -> list[str]:
     if reviewer == "claude":
         server = aris / "mcp-servers" / "claude-review" / "server.py"
         listed = runner(["claude", "mcp", "list"], capture_output=True, text=True)
-        if "claude-review" not in (listed.stdout or ""):
+        line = next((l for l in (listed.stdout or "").splitlines() if l.startswith("claude-review")), "")
+        if line and str(aris) not in line:
+            runner(["claude", "mcp", "remove", "claude-review", "-s", "user"], capture_output=True, text=True)
+            actions.append("removed stale claude-review MCP registration (pointed outside the current ARIS install)")
+            line = ""
+        if not line:
             runner(["claude", "mcp", "add", "claude-review", "-s", "user", "--", sys.executable, str(server)], capture_output=True, text=True)
             actions.append("registered claude-review MCP (fresh-context Claude reviewer for ARIS and the Reviewer agent)")
     else:
