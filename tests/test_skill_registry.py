@@ -45,7 +45,7 @@ def test_aris_dependencies_from_tsv(reg):
 
 def test_dependency_cycle_safe(reg):
     reg.get("aris:paper-plan").depends_on.append("aris:paper-writing")
-    assert set(reg.dependency_closure(["aris:paper-writing"])) == {"aris:paper-writing", "aris:paper-plan"}
+    assert set(reg.dependency_closure(["aris:paper-writing"])) == {"aris:paper-writing", "aris:paper-plan", "aris:figure-spec"}
 
 
 def test_availability_env(reg):

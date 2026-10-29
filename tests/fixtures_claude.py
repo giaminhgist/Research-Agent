@@ -21,7 +21,7 @@ def make_claude_home(root: Path) -> Path:
     (aris / "tools" / "skill-groups.tsv").write_text(
         "# comment\n"
         "group\tpaper-core\tWriting\tdesc\n"
-        "skill\tpaper-writing\tpaper-core\tpaper-plan\tworkflow 3\n"
+        "skill\tpaper-writing\tpaper-core\tpaper-plan,figure-spec\tworkflow 3\n"
         "skill\tpaper-plan\tpaper-core\t-\toutline\n"
         "skill\tresearch-lit\tlit-search\t-\tlit review\n",
         encoding="utf-8",

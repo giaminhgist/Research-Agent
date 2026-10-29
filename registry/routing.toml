@@ -1,0 +1,37 @@
+# Task -> agent routing rules. Order matters: on a tie, the earlier rule wins.
+# Keywords are matched case-insensitively on word boundaries; multi-word phrases count once.
+
+[[rule]]
+task_type = "review"
+agent = "reviewer"
+keywords = ["review", "critique", "audit", "leakage", "check citations", "verify claims", "peer review", "sanity check", "reproducibility check", "validity"]
+
+[[rule]]
+task_type = "write"
+agent = "writing"
+keywords = ["draft", "write", "manuscript", "paper", "methods section", "results section", "discussion", "introduction", "abstract", "latex", "rebuttal", "proposal", "grant", "slides", "poster", "bibliography", "polish"]
+
+[[rule]]
+task_type = "run"
+agent = "experiment"
+keywords = ["run", "train", "training", "launch", "execute", "cv", "cross-validation", "bootstrap", "cis", "confidence intervals", "statistical test", "analyze results", "error analysis", "monitor", "seeds", "gpu job"]
+
+[[rule]]
+task_type = "implement"
+agent = "coding"
+keywords = ["implement", "code", "pytorch", "python", "pipeline", "refactor", "debug", "bug", "unit test", "tests", "optimize", "dataloader", "baseline in"]
+
+[[rule]]
+task_type = "design"
+agent = "methodology"
+keywords = ["idea", "ideas", "hypothesis", "hypotheses", "propose", "novelty", "design", "experiment plan", "ablation", "ablations", "methodology", "statistical plan", "feature engineering", "protocol"]
+
+[[rule]]
+task_type = "literature"
+agent = "research"
+keywords = ["survey", "literature", "papers", "related work", "sota", "state of the art", "systematic review", "biomarkers", "datasets", "benchmarks", "gaps", "find papers", "citations"]
+
+[[rule]]
+task_type = "plan"
+agent = "orchestrator"
+keywords = ["plan", "roadmap", "end-to-end", "full project", "coordinate"]
