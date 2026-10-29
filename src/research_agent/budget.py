@@ -16,11 +16,24 @@ FAMILIES = ("opus", "sonnet", "haiku")
 
 
 def session_cost_from_transcript(path: Path, pricing: dict) -> float | None:
-    """USD cost of a Claude Code transcript (JSONL), or None if it cannot be read."""
+    """USD cost of a Claude Code session: the main transcript (JSONL) plus its subagent transcripts
+    (<transcript without .jsonl>/subagents/*.jsonl). None if the main transcript cannot be read."""
     try:
-        text = Path(path).read_text(encoding="utf-8", errors="replace")
+        path = Path(path)
+        total = _transcript_cost(path.read_text(encoding="utf-8", errors="replace"), pricing)
     except (OSError, TypeError):
         return None
+    sub = path.with_suffix("") / "subagents"
+    if sub.is_dir():
+        for f in sorted(sub.glob("*.jsonl")):
+            try:
+                total += _transcript_cost(f.read_text(encoding="utf-8", errors="replace"), pricing)
+            except OSError:
+                continue
+    return round(total, 6)
+
+
+def _transcript_cost(text: str, pricing: dict) -> float:
     usage_by_msg: dict[str, tuple[str, dict]] = {}
     for i, line in enumerate(text.splitlines()):
         try:
@@ -35,13 +48,19 @@ def session_cost_from_transcript(path: Path, pricing: dict) -> float | None:
     for model, u in usage_by_msg.values():
         fam = next((f for f in FAMILIES if f in model.lower()), "sonnet")
         rate = pricing.get(fam, {})
+        cc = u.get("cache_creation") if isinstance(u.get("cache_creation"), dict) else None
+        if cc:
+            writes = (cc.get("ephemeral_5m_input_tokens", 0) * rate.get("cache_write", 0)
+                      + cc.get("ephemeral_1h_input_tokens", 0) * rate.get("cache_write_1h", rate.get("cache_write", 0)))
+        else:
+            writes = u.get("cache_creation_input_tokens", 0) * rate.get("cache_write", 0)
         total += (
             u.get("input_tokens", 0) * rate.get("input", 0)
             + u.get("output_tokens", 0) * rate.get("output", 0)
-            + u.get("cache_creation_input_tokens", 0) * rate.get("cache_write", 0)
+            + writes
             + u.get("cache_read_input_tokens", 0) * rate.get("cache_read", 0)
         ) / 1e6
-    return round(total, 6)
+    return total
 
 
 class Budget:

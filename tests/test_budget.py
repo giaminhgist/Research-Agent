@@ -83,3 +83,23 @@ def test_gpu_jobs_count_toward_project(project):
     assert b.record_gpu_job("R1", 2.0) == 3.0
     assert b.project_total() == 3.0
     assert b.summary()["gpu_usd"] == 3.0
+
+
+def test_includes_subagent_transcripts(tmp_path, project):
+    pricing = config.load(project)["pricing"]
+    main = write_transcript(tmp_path / "sess.jsonl")
+    sub = tmp_path / "sess" / "subagents"
+    sub.mkdir(parents=True)
+    (sub / "agent-1.jsonl").write_text(json.dumps({"type": "assistant", "message": {
+        "id": "S1", "model": "claude-sonnet-5-5", "usage": {"input_tokens": 0, "output_tokens": 100000}}}) + "\n")
+    assert session_cost_from_transcript(main, pricing) == pytest.approx(0.124 + 1.0)
+
+
+def test_1h_cache_write_priced_at_2x_input(tmp_path, project):
+    pricing = config.load(project)["pricing"]
+    f = tmp_path / "t.jsonl"
+    f.write_text(json.dumps({"type": "assistant", "message": {"id": "A", "model": "claude-opus-5-5", "usage": {
+        "input_tokens": 0, "output_tokens": 0, "cache_creation_input_tokens": 300000,
+        "cache_creation": {"ephemeral_1h_input_tokens": 200000, "ephemeral_5m_input_tokens": 100000}}}}) + "\n")
+    # 200k * $8 (2 x $4) + 100k * $5 (1.25 x $4) per MTok
+    assert session_cost_from_transcript(f, pricing) == pytest.approx(1.6 + 0.5)
