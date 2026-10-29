@@ -46,7 +46,7 @@ At dispatch time, the orchestrator calls `ra route` (task → agent) and `ra res
 You need [Claude Code](https://code.claude.com/docs), Python ≥ 3.11 and git. Node.js (`npx`) is recommended. Without it, Supervisor-Skills is installed by a git clone and copy instead. On Windows, Claude Code uses Git Bash.
 
 ```bash
-git clone <this repo> ~/Research-Agent
+git clone https://github.com/giaminhgist/Research-Agent.git ~/Research-Agent
 cd ~/Research-Agent
 python3 install.py                 # Windows: py -3 install.py
 python3 install.py --dry-run       # print the plan, change nothing
