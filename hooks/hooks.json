@@ -1,0 +1,29 @@
+{
+  "description": "Research-Agent guardrails: HITL guard, 3-tier budget, provenance nudge, project memory, knowledge promotion queue",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit|MultiEdit|NotebookEdit|Read|Grep|Glob|Agent|Task",
+        "hooks": [{ "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" PreToolUse", "timeout": 30 }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" PostToolUse", "timeout": 30 }]
+      }
+    ],
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" SessionStart", "timeout": 30 }] }
+    ],
+    "SubagentStop": [
+      { "hooks": [{ "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" SubagentStop", "timeout": 30 }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" Stop", "timeout": 30 }] }
+    ],
+    "SessionEnd": [
+      { "hooks": [{ "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" SessionEnd", "timeout": 30 }] }
+    ]
+  }
+}
