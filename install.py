@@ -6,7 +6,8 @@ Each upstream skill repo is installed the way its own README says, never through
   ARIS               claude plugin marketplace add wanshuiyin/Auto-claude-code-research-in-sleep; install aris@aris
   humanizer          claude plugin marketplace add blader/humanizer; install humanizer@humanizer
   Supervisor-Skills  npx skills add HKUSTDial/Supervisor-Skills --global --agent claude-code   (-> ~/.claude/skills)
-Then this checkout is added as the `research-agent` marketplace and research-agent@research-agent is installed.
+Then the plugin files of this checkout are staged into ~/.research-agent/plugin, added as the `research-agent`
+marketplace, and research-agent@research-agent is installed.
 
 Usage:  python3 install.py [--dry-run] [--yes] [--reviewer claude|codex] [--with-latex] [--with-drawio] [--extras PKG ...]
         Windows: py -3 install.py ...
@@ -32,6 +33,10 @@ SUPERVISOR_SKILLS = (
     "intro-drafter", "paper-writer", "paper-polish", "pre-submission-reviewer", "figure-designer",
     "drawio-reconstruction", "rebuttal-guidance",
 )
+# What Claude Code needs from this checkout. Staged into ~/.research-agent/plugin so that a development checkout's
+# .venv, .git, caches and tests are not copied into Claude Code's plugin cache.
+PLUGIN_FILES = (".claude-plugin", "agents", "commands", "hooks", "bin", "config", "registry", "src", "docs",
+                "README.md", "LICENSE", "pyproject.toml", "requirements-skills.txt")
 NPX_SUPERVISOR = ["npx", "-y", "skills", "add", "HKUSTDial/Supervisor-Skills", "--global", "--agent", "claude-code",
                   "--skill", "*", "--yes", "--copy"]
 
@@ -54,9 +59,12 @@ def _json(p: Path) -> dict:
 def detect_state(home: Path | None = None) -> dict:
     home = Path(home or claude_home())
     skills = home / "skills"
+    known = _json(home / "plugins" / "known_marketplaces.json")
     return {
+        "marketplace_paths": {k: (v.get("source") or {}).get("path") or v.get("installLocation", "")
+                              for k, v in known.items() if isinstance(v, dict)},
         "plugins": set((_json(home / "plugins" / "installed_plugins.json").get("plugins") or {}).keys()),
-        "marketplaces": set(_json(home / "plugins" / "known_marketplaces.json").keys()),
+        "marketplaces": set(known.keys()),
         "user_skills": {d.name for d in skills.iterdir() if (d / "SKILL.md").is_file()} if skills.is_dir() else set(),
         "has_npx": shutil.which("npx") is not None,
     }
@@ -92,6 +100,48 @@ def _plugin(state: dict, plugin_id: str, marketplace: str, source: str | None) -
         out.append(["claude", "plugin", "marketplace", "add", source])
     out.append(["claude", "plugin", "install", plugin_id, "--scope", "user"])
     return out
+
+
+def stage_plugin(src: Path, dest: Path) -> None:
+    """Copy only the plugin's own files into dest (replacing what was there)."""
+    if dest.exists():
+        shutil.rmtree(dest)
+    dest.mkdir(parents=True)
+    ignore = shutil.ignore_patterns("__pycache__", "*.pyc", "*.egg-info", ".pytest_cache")
+    for name in PLUGIN_FILES:
+        p = Path(src) / name
+        if p.is_dir():
+            shutil.copytree(p, dest / name, ignore=ignore)
+        elif p.is_file():
+            shutil.copy2(p, dest / name)
+
+
+def plugin_stage_dir() -> Path:
+    return ra_home() / "plugin"
+
+
+def research_agent_cmds(state: dict, stage: Path) -> list[list[str]]:
+    pid, install_cmd = "research-agent@research-agent", ["claude", "plugin", "install", "research-agent@research-agent", "--scope", "user"]
+    add = ["claude", "plugin", "marketplace", "add", str(stage)]
+    registered = state.get("marketplace_paths", {}).get("research-agent")
+    if "research-agent" not in state["marketplaces"]:
+        return [add, install_cmd]
+    if registered and Path(registered) != Path(stage):
+        out = [["claude", "plugin", "uninstall", pid, "--scope", "user"]] if pid in state["plugins"] else []
+        return out + [["claude", "plugin", "marketplace", "remove", "research-agent"], add, install_cmd]
+    if pid not in state["plugins"]:
+        return [install_cmd]
+    return [["claude", "plugin", "marketplace", "update", "research-agent"], ["claude", "plugin", "update", pid, "--scope", "user"]]
+
+
+def _research_agent_step(state: dict, repo: Path) -> Callable[["Runner"], bool]:
+    def run(runner: "Runner") -> bool:
+        stage = plugin_stage_dir()
+        print(f"  stage plugin files: {repo} -> {stage}")
+        if not runner.dry_run:
+            stage_plugin(repo, stage)
+        return all([runner.run(c) for c in research_agent_cmds(state, stage)])
+    return run
 
 
 def copy_supervisor_skills(src_repo: Path, dest: Path, force: bool) -> tuple[list[str], list[str]]:
@@ -201,7 +251,7 @@ def plan_steps(state: dict, o, confirm: Callable[[str], bool]) -> list[Step]:
         steps.append(Step("supervisor-skills", [NPX_SUPERVISOR]))
     else:
         steps.append(Step("supervisor-skills", _supervisor_fallback(o.force)))
-    steps.append(Step("research-agent", _plugin(state, "research-agent@research-agent", "research-agent", str(o.repo))))
+    steps.append(Step("research-agent", _research_agent_step(state, Path(o.repo))))
     steps.append(Step("home", _home_step(o.reviewer)))
     if o.with_latex or o.with_drawio or o.extras:
         steps.append(Step("extras", _extras_step(o)))

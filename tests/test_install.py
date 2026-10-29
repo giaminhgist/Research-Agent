@@ -26,7 +26,7 @@ def cmds(steps, name):
 
 
 def state(**kw):
-    base = dict(plugins=set(), marketplaces={"claude-plugins-official"}, user_skills=set(), has_npx=True)
+    base = dict(plugins=set(), marketplaces={"claude-plugins-official"}, user_skills=set(), has_npx=True, marketplace_paths={})
     return {**base, **kw}
 
 
@@ -39,8 +39,7 @@ def test_fresh_machine_commands():
                                         ["claude", "plugin", "install", "humanizer@humanizer", "--scope", "user"]]
     assert cmds(steps, "supervisor-skills") == [["npx", "-y", "skills", "add", "HKUSTDial/Supervisor-Skills", "--global",
                                                  "--agent", "claude-code", "--skill", "*", "--yes", "--copy"]]
-    assert cmds(steps, "research-agent") == [["claude", "plugin", "marketplace", "add", str(ROOT)],
-                                             ["claude", "plugin", "install", "research-agent@research-agent", "--scope", "user"]]
+    assert cmds(steps, "research-agent") == "callable"
     assert "migrate-tutu" not in [s.name for s in steps]
     flat = [" ".join(c) for s in steps if isinstance(s.cmds, list) for c in s.cmds]
     assert not any("@tutu" in c or "@research-agent" in c and "research-agent@research-agent" not in c for c in flat)
@@ -77,7 +76,7 @@ def test_idempotent_rerun_emits_nothing_for_installed():
                  marketplaces={"claude-plugins-official", "aris", "humanizer", "research-agent"},
                  user_skills=set(install.SUPERVISOR_SKILLS))
     steps = install.plan_steps(full, opts(), confirm=lambda m: pytest.fail("asked"))
-    for name in ("superpowers", "aris", "humanizer", "supervisor-skills", "research-agent"):
+    for name in ("superpowers", "aris", "humanizer", "supervisor-skills"):
         assert cmds(steps, name) == [], name
 
 
@@ -112,8 +111,10 @@ def test_detect_state(tmp_path, monkeypatch):
     from fixtures_claude import make_claude_home
     home = make_claude_home(tmp_path)
     (home / "plugins" / "known_marketplaces.json").write_text('{"aris": {}, "tutu": {}}')
+    (home / "plugins" / "known_marketplaces.json").write_text('{"aris": {}, "tutu": {}, "research-agent": {"source": {"source": "directory", "path": "/x"}}}')
     st = install.detect_state(home)
-    assert "aris@aris" in st["plugins"] and st["marketplaces"] == {"aris", "tutu"}
+    assert "aris@aris" in st["plugins"] and st["marketplaces"] == {"aris", "tutu", "research-agent"}
+    assert st["marketplace_paths"]["research-agent"] == "/x"
     assert {"deep-research", "my-own-skill"} <= st["user_skills"]
 
 
@@ -130,3 +131,35 @@ def test_dry_run_executes_nothing(tmp_path, monkeypatch, capsys):
     out = capsys.readouterr().out
     assert "claude plugin install aris@aris --scope user" in out and "skills add HKUSTDial/Supervisor-Skills" in out
     assert not (tmp_path / "ra").exists()
+
+
+def test_stage_plugin_copies_only_plugin_files(tmp_path):
+    src = tmp_path / "checkout"
+    for rel in ("agents/a.md", "src/research_agent/x.py", ".claude-plugin/plugin.json", ".venv/bin/python",
+                ".superpowers/sdd/x", "src/research_agent/__pycache__/x.pyc", ".git/HEAD", "tests/t.py", ".pytest_cache/x"):
+        (src / rel).parent.mkdir(parents=True, exist_ok=True)
+        (src / rel).write_text("x")
+    dest = tmp_path / "stage"
+    (dest / "stale.txt").parent.mkdir(parents=True)
+    (dest / "stale.txt").write_text("old")
+    install.stage_plugin(src, dest)
+    got = sorted(str(p.relative_to(dest)) for p in dest.rglob("*") if p.is_file())
+    assert got == [".claude-plugin/plugin.json", "agents/a.md", "src/research_agent/x.py"]
+
+
+def test_research_agent_step_commands(tmp_path, monkeypatch):
+    monkeypatch.setenv("RA_HOME", str(tmp_path / "ra"))
+    stage = tmp_path / "ra" / "plugin"
+    fresh = install.research_agent_cmds(state(), stage)
+    assert fresh == [["claude", "plugin", "marketplace", "add", str(stage)],
+                     ["claude", "plugin", "install", "research-agent@research-agent", "--scope", "user"]]
+    moved = install.research_agent_cmds(state(plugins={"research-agent@research-agent"}, marketplaces={"research-agent"},
+                                              marketplace_paths={"research-agent": "/old/checkout"}), stage)
+    assert moved == [["claude", "plugin", "uninstall", "research-agent@research-agent", "--scope", "user"],
+                     ["claude", "plugin", "marketplace", "remove", "research-agent"],
+                     ["claude", "plugin", "marketplace", "add", str(stage)],
+                     ["claude", "plugin", "install", "research-agent@research-agent", "--scope", "user"]]
+    same = install.research_agent_cmds(state(plugins={"research-agent@research-agent"}, marketplaces={"research-agent"},
+                                             marketplace_paths={"research-agent": str(stage)}), stage)
+    assert same == [["claude", "plugin", "marketplace", "update", "research-agent"],
+                    ["claude", "plugin", "update", "research-agent@research-agent", "--scope", "user"]]
